@@ -21,6 +21,11 @@
 - Mídias existentes do WhatsApp copiadas (15.570+ imagens)
 - 14 subdiretórios de mídia do WhatsApp funcionando
 
+### ⚠️ Corrigido (v1.1.0)
+- Diretórios `~/Imagens` e `~/Documentos` tinham permissão 755
+- Android Apps não conseguiam escrever (erro ao salvar foto)
+- Agora o script aplica `chmod 777` antes de cada bind
+
 ### 📁 Estrutura
 ```
 ~/WaydroidBinds/

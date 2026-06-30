@@ -31,6 +31,13 @@ BINDS=(
     "$USER_HOME/Waydroid/WhatsApp:Android/media/com.whatsapp/WhatsApp/Media"
 )
 
+# Create source dirs (if needed) and ensure world-writable so Android apps can write
+for entry in "${BINDS[@]}"; do
+    source="${entry%%:*}"
+    mkdir -p "$source"
+    chmod 777 "$source"
+done
+
 # Create target dirs inside Android
 for entry in "${BINDS[@]}"; do
     target="${entry#*:}"
@@ -57,6 +64,7 @@ if [ -f "$STARTUP_SCRIPT" ]; then
     cat >> "$STARTUP_SCRIPT" << EOF
 
 # Waydroid Shared Folders BEGIN
+chmod 777 $USER_HOME/Downloads $USER_HOME/Documentos $USER_HOME/Imagens $USER_HOME/videos $USER_HOME/Waydroid/WhatsApp 2>/dev/null || true
 mount --bind $USER_HOME/Downloads $WAYDROID_MEDIA/Download
 mount --bind $USER_HOME/Documentos $WAYDROID_MEDIA/Documents
 mount --bind $USER_HOME/Imagens $WAYDROID_MEDIA/Pictures
