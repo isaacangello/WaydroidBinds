@@ -57,7 +57,8 @@ flatpak build-bundle repo waydroid-binds.flatpak io.github.isaacangello.waydroid
    e na descrição (com suas palavras) explique:
    - arquitetura host-dependent: binds/firewall exigem `pkexec` no host →
      `flatpak-spawn --host pkexec ...`; justifica `--filesystem=host`,
-     `--talk-name=org.freedesktop.Flatpak`, `--socket=session-bus`.
+     `--talk-name=org.freedesktop.Flatpak` (exceções do linter: ver
+     `flatpak-builder-lint`).
    - `--share=network`: diagnóstico de conectividade (ping).
 6. **Review:** responder comentários; quando pedirem, comentar `bot, build`.
 7. **Aprovação:** aceitar o convite de colaborador do repo do app em
