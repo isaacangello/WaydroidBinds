@@ -56,12 +56,13 @@ done
 
 echo ""
 echo "=== Binds ativos ==="
-mount | grep "$WAYDROID_MEDIA" | grep -v waydroid | sed "s|.*on ||" | sed "s| type.*||"
+mount | grep "$WAYDROID_MEDIA" | sed "s|.*on ||" | sed "s| type.*||" || true
 
 # Persistência via waydroid-startup-scripts
+# Insere o bloco ANTES do 'exit' do hook (o hook original termina com 'exit';
+# conteúdo adicionado depois dele é código morto e não roda no boot).
 if [ -f "$STARTUP_SCRIPT" ]; then
-    sed -i '/# Waydroid Shared Folders BEGIN/,/# Waydroid Shared Folders END/d' "$STARTUP_SCRIPT"
-    cat >> "$STARTUP_SCRIPT" << EOF
+    BLOCK=$(cat << EOF
 
 # Waydroid Shared Folders BEGIN
 chmod 777 $USER_HOME/Downloads $USER_HOME/Documentos $USER_HOME/Imagens $USER_HOME/videos $USER_HOME/Waydroid/WhatsApp 2>/dev/null || true
@@ -72,6 +73,21 @@ mount --bind $USER_HOME/videos $WAYDROID_MEDIA/Movies
 mount --bind $USER_HOME/Waydroid/WhatsApp $WAYDROID_MEDIA/Android/media/com.whatsapp/WhatsApp/Media
 # Waydroid Shared Folders END
 EOF
+)
+    sed -i '/# Waydroid Shared Folders BEGIN/,/# Waydroid Shared Folders END/d' "$STARTUP_SCRIPT"
+    if grep -q '^exit' "$STARTUP_SCRIPT"; then
+        TMP=$(mktemp)
+        awk -v b="$BLOCK" '
+            /^exit[[:space:]]*$/ && !done {
+                print b
+                done=1
+            }
+            { print }
+        ' "$STARTUP_SCRIPT" > "$TMP"
+        mv "$TMP" "$STARTUP_SCRIPT"
+    else
+        printf '\n%s\n' "$BLOCK" >> "$STARTUP_SCRIPT"
+    fi
     echo ""
     echo "Persistência adicionada ao $STARTUP_SCRIPT"
 fi

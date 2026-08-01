@@ -28,9 +28,18 @@ pkexec ./revert-waydroid-binds.sh
 
 # Copiar mídias existentes do WhatsApp para a pasta compartilhada
 pkexec ./copy-existing-media.sh
+
+# Detectar e configurar firewall (firewalld/UFW/nftables/iptables) para o Waydroid navegar
+pkexec ./setup-waydroid-firewall.sh
+
+# Diagnóstico (não altera nada)
+pkexec ./setup-waydroid-firewall.sh check
+
+# Desfazer configuração de firewall
+pkexec ./setup-waydroid-firewall.sh revert
 ```
 
-Os binds são automaticamente restaurados toda vez que o container Waydroid inicia, via hook em `/usr/bin/waydroid-startup-scripts`.
+Os binds e as regras de firewall são automaticamente restaurados toda vez que o container Waydroid inicia, via hook em `/usr/bin/waydroid-startup-scripts`.
 
 ## Scripts
 
@@ -39,6 +48,25 @@ Os binds são automaticamente restaurados toda vez que o container Waydroid inic
 | `setup-waydroid-binds.sh` | Aplica todos os bind mounts e adiciona persistência |
 | `revert-waydroid-binds.sh` | Desmonta todos os binds e remove persistência |
 | `copy-existing-media.sh` | Copia mídias já existentes no WhatsApp para a pasta compartilhada |
+| `setup-waydroid-firewall.sh` | Detecta e configura firewall para o Waydroid ter internet persistente (IP forwarding, NAT e forwarding rules) |
+
+## Firewall
+
+O `setup-waydroid-firewall.sh` detecta automaticamente o firewall ativo (**firewalld > UFW > nftables > iptables puro**) e aplica a configuração necessária para o Waydroid navegar:
+
+- `net.ipv4.ip_forward=1` persistido em `/etc/sysctl.d/99-waydroid.conf`
+- firewalld: interface `waydroid0` movida para a zona `trusted` (permanente)
+- UFW: libera DNS (53), DHCP (67) e forwarding em `waydroid0`
+- iptables/nftables: `iptables -P FORWARD ACCEPT` + ACCEPT `-i/-o waydroid0` + MASQUERADE
+- Restaura a rota default dentro do container a cada boot (via hook)
+
+> **Sintoma comum:** WhatsApp não envia mensagens mas às vezes navega. Causa típica: Docker deixa `FORWARD DROP` e só aceita conexões já estabelecidas — pacotes novos do container são descartados. O script resolve adicionando ACCEPT para `waydroid0`.
+
+```bash
+pkexec ./setup-waydroid-firewall.sh         # detecta e configura
+pkexec ./setup-waydroid-firewall.sh check   # diagnóstico (não altera nada)
+pkexec ./setup-waydroid-firewall.sh revert  # desfaz
+```
 
 ## Referência
 
