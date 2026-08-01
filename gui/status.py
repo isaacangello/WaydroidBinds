@@ -1,14 +1,20 @@
 """Leitura de estado atual (sem exigir root quando possível)."""
 
+import os
 import subprocess
 
 import binds
 
 
 def _mount_output() -> str:
+    # Dentro de um sandbox Flatpak, o namespace de mounts é o do sandbox.
+    # O estado real (binds no host) só é visível via flatpak-spawn --host.
+    cmd = ["mount"]
+    if os.environ.get("FLATPAK_ID"):
+        cmd = ["flatpak-spawn", "--host", "mount"]
     try:
         proc = subprocess.run(
-            ["mount"], capture_output=True, text=True, timeout=10, check=False
+            cmd, capture_output=True, text=True, timeout=10, check=False
         )
         return proc.stdout or ""
     except (subprocess.SubprocessError, OSError):

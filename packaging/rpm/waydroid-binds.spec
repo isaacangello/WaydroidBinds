@@ -33,16 +33,20 @@ for s in setup-waydroid-binds.sh setup-waydroid-firewall.sh \
     install -m 0755 "$s" %{buildroot}%{_datadir}/waydroid-binds/
 done
 cp -a gui %{buildroot}%{_datadir}/waydroid-binds/
-install -dm 0755 %{buildroot}%{_datadir}/applications
-install -m 0644 gui/resources/waydroid-binds.desktop %{buildroot}%{_datadir}/applications/
+install -dm 0755 %{buildroot}%{_datadir}/applications %{buildroot}%{_datadir}/metainfo
+install -m 0644 gui/resources/io.github.isaacangello.waydroidbinds.desktop %{buildroot}%{_datadir}/applications/
+install -m 0644 gui/resources/io.github.isaacangello.waydroidbinds.metainfo.xml %{buildroot}%{_datadir}/metainfo/
 install -dm 0755 %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
-install -m 0644 gui/resources/waydroid-binds.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/
+install -m 0644 gui/resources/io.github.isaacangello.waydroidbinds.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/
+install -m 0644 LICENSE %{buildroot}%{_licensedir}/%{name}/ 2>/dev/null || true
 
 %files
 %{_bindir}/waydroid-binds-gui
 %{_datadir}/waydroid-binds/
-%{_datadir}/applications/waydroid-binds.desktop
-%{_datadir}/icons/hicolor/scalable/apps/waydroid-binds.svg
+%{_datadir}/applications/io.github.isaacangello.waydroidbinds.desktop
+%{_datadir}/metainfo/io.github.isaacangello.waydroidbinds.metainfo.xml
+%{_datadir}/icons/hicolor/scalable/apps/io.github.isaacangello.waydroidbinds.svg
+%license LICENSE
 
 %changelog
 * Sat Aug 01 2026 Isaac Angello <isaac.angello@gmail.com> - 1.3.0-1

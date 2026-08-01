@@ -14,6 +14,13 @@
   - `setup-waydroid-firewall.sh status` → saída KEY=VALUE para a GUI
   - `copy-existing-media.sh` detecta o usuário real (PKEXEC_UID/SUDO_USER)
 
+### 🚀 Flathub — preparado (pendente: submeter)
+- App ID: **`io.github.isaacangello.waydroidbinds`** (runtime KDE 6.8 + `io.qt.PySide.BaseApp`)
+- Arquivos prontos: `metainfo.xml`, `LICENSE` (GPL-3.0), screenshots em `docs/screenshots/`, `.desktop`/`.svg` renomeados
+- Manifest de dev (fonte local) e de submissão (`*.flathub.yml`, tarball v1.3.0 + `x-checker-data`)
+- Flatpak `bind_status` lê mounts do host via `flatpak-spawn --host mount`
+- **Falta (manual, você)**: criar release/tag `v1.3.0`, preencher `sha256: REPLACE_ME`, e abrir o PR no `flathub/flathub` (a política proíbe PR por IA) — instruções em `packaging/flatpak/README.md`
+
 ### ✅ Internet / Firewall (v1.2.0)
 - Firewall detectado: **firewalld** (backend nf_tables)
 - `waydroid0` na zona **trusted** (permanente)
@@ -55,8 +62,10 @@
 ├── copy-existing-media.sh
 ├── setup-waydroid-firewall.sh
 ├── waydroid-binds-gui
-├── gui/                  # GUI PySide6
-├── packaging/            # debian/ rmp/ arch/ flatpak
+├── gui/                  # GUI PySide6 (+ metainfo/desktop/svg com App ID)
+├── docs/screenshots/     # screenshots p/ Flathub
+├── packaging/            # debian/ rmp/ arch/ flatpak (+ manifest submissão)
+├── LICENSE               # GPL-3.0
 ├── .github/workflows/    # CI + Release
 ├── README.md
 ├── CHANGELOG.md

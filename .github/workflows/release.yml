@@ -82,14 +82,14 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y flatpak flatpak-builder
-      - name: Baixar runtime KDE
+      - name: Baixar runtime KDE e PySide6 BaseApp
         run: |
           flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y org.kde.Platform//6.8 org.kde.Sdk//6.8
+          flatpak install --user -y org.kde.Platform//6.8 org.kde.Sdk//6.8 io.qt.PySide.BaseApp//6.8
       - name: Build
-        run: flatpak-builder --user --force-clean --repo=repo build packaging/flatpak/org.waydroidbinds.WaydroidBinds.yml
+        run: flatpak-builder --user --force-clean --repo=repo build packaging/flatpak/io.github.isaacangello.waydroidbinds.yml
       - name: Bundle
-        run: flatpak build-bundle repo waydroid-binds.flatpak org.waydroidbinds.WaydroidBinds
+        run: flatpak build-bundle repo waydroid-binds.flatpak io.github.isaacangello.waydroidbinds
       - uses: actions/upload-artifact@v4
         with:
           name: flatpak

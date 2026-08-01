@@ -24,7 +24,11 @@ def main() -> int:
     app.setApplicationDisplayName("Waydroid Binds")
     app.setOrganizationName("WaydroidBinds")
 
-    icon_path = Path(__file__).resolve().parent / "resources" / "waydroid-binds.svg"
+    icon_path = (
+        Path(__file__).resolve().parent
+        / "resources"
+        / "io.github.isaacangello.waydroidbinds.svg"
+    )
     if icon_path.exists():
         app.setWindowIcon(QIcon(str(icon_path)))
 

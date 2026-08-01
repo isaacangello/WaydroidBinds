@@ -3,6 +3,11 @@
 ## v1.3.0 (2026-08-01)
 
 ### Adicionado
+- **Preparo para o Flathub**: App ID `io.github.isaacangello.waydroidbinds`
+  - Metainfo AppStream (`io.github.isaacangello.waydroidbinds.metainfo.xml`), LICENSE (GPL-3.0) e screenshots em `docs/screenshots/`
+  - Manifest Flatpak agora usa a BaseApp oficial `io.qt.PySide.BaseApp` (sem `pip` no build, requisito do Flathub)
+  - Manifest de submissão (`*.flathub.yml`) com fonte do tarball do release + `x-checker-data`
+  - `.desktop`/`.svg` renomeados com o App ID; status dos binds lido do host no sandbox
 - **GUI** (`waydroid-binds-gui`): painel PySide6 com abas para Pastas compartilhadas, Rede/Firewall e Mídia do WhatsApp
   - Aplica/reverte binds seletivamente (checkbox por pasta) com persistência no boot
   - Diagnóstico de firewall em tempo real (via `status` KEY=VALUE) e botão Aplicar/Reparar

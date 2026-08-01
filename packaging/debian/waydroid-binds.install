@@ -4,5 +4,6 @@ revert-waydroid-binds.sh usr/share/waydroid-binds/
 copy-existing-media.sh usr/share/waydroid-binds/
 waydroid-binds-gui usr/bin/
 gui usr/share/waydroid-binds/
-gui/resources/waydroid-binds.desktop usr/share/applications/
-gui/resources/waydroid-binds.svg usr/share/icons/hicolor/scalable/apps/
+gui/resources/io.github.isaacangello.waydroidbinds.desktop usr/share/applications/
+gui/resources/io.github.isaacangello.waydroidbinds.svg usr/share/icons/hicolor/scalable/apps/
+gui/resources/io.github.isaacangello.waydroidbinds.metainfo.xml usr/share/metainfo/
