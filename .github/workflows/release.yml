@@ -38,7 +38,7 @@ jobs:
             --exclude='*/__pycache__/*' \
             setup-waydroid-binds.sh setup-waydroid-firewall.sh \
             revert-waydroid-binds.sh copy-existing-media.sh \
-            waydroid-binds-gui gui
+            waydroid-binds-gui gui LICENSE
           rpmbuild -bb packaging/rpm/waydroid-binds.spec
           cp ~/rpmbuild/RPMS/noarch/waydroid-binds-*.rpm "$GITHUB_WORKSPACE/"
       - uses: actions/upload-artifact@v4
@@ -63,11 +63,11 @@ jobs:
             --exclude='*/__pycache__/*' \
             setup-waydroid-binds.sh setup-waydroid-firewall.sh \
             revert-waydroid-binds.sh copy-existing-media.sh \
-            waydroid-binds-gui gui
+            waydroid-binds-gui gui LICENSE
           cp packaging/arch/PKGBUILD /work/PKGBUILD
           useradd -m builder
           chown -R builder /work
-          su builder -c 'cd /work && makepkg -f --noconfirm'
+          su builder -c 'cd /work && makepkg -f --nodeps --noconfirm'
           cp /work/*.pkg.tar.zst "$GITHUB_WORKSPACE/"
       - uses: actions/upload-artifact@v4
         with:
