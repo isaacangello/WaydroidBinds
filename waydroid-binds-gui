@@ -1,0 +1,12 @@
+#!/bin/bash
+# Waydroid Binds GUI — launcher (dev no repo ou instalado em /usr/share)
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for base in "$DIR/gui" "$DIR" /usr/share/waydroid-binds/gui /usr/lib/waydroid-binds/gui /app/share/waydroid-binds/gui; do
+    if [ -f "$base/main.py" ]; then
+        exec python3 "$base/main.py" "$@"
+    fi
+done
+echo "waydroid-binds-gui: GUI não encontrada (procure por gui/main.py)" >&2
+exit 1

@@ -2,7 +2,19 @@
 
 ## Status Atual (2026-08-01)
 
-### ✅ Internet / Firewall (novo)
+### ✅ v1.3.0 — GUI + Empacotamento (novo)
+- **GUI PySide6** (`gui/`, launcher `waydroid-binds-gui`):
+  - Abas: Pastas compartilhadas (binds seletivos), Rede/Firewall (diagnóstico tempo real) e Mídia do WhatsApp
+  - Smoke test offscreen OK; `--dry-run` para testes
+- **Empacotamento**: `packaging/{debian,rpm,arch,flatpak}` (versão 1.3.0)
+- **GitHub Actions**: `ci.yml` (shellcheck/ruff/py_compile/smoke) + `release.yml` (deb/rpm/pacman/flatpak + GitHub Release)
+- Verificado: `shellcheck` limpo nos 4 scripts + launcher, `ruff check/format` limpo no `gui/`, `python3 -m py_compile gui/*.py` OK
+- Scripts:
+  - `setup-waydroid-binds.sh [nome...]` agora aceita seleção seletiva de binds
+  - `setup-waydroid-firewall.sh status` → saída KEY=VALUE para a GUI
+  - `copy-existing-media.sh` detecta o usuário real (PKEXEC_UID/SUDO_USER)
+
+### ✅ Internet / Firewall (v1.2.0)
 - Firewall detectado: **firewalld** (backend nf_tables)
 - `waydroid0` na zona **trusted** (permanente)
 - `iptables -P FORWARD ACCEPT` + ACCEPT `-i/-o waydroid0` + MASQUERADE aplicados
@@ -42,6 +54,10 @@
 ├── revert-waydroid-binds.sh
 ├── copy-existing-media.sh
 ├── setup-waydroid-firewall.sh
+├── waydroid-binds-gui
+├── gui/                  # GUI PySide6
+├── packaging/            # debian/ rmp/ arch/ flatpak
+├── .github/workflows/    # CI + Release
 ├── README.md
 ├── CHANGELOG.md
 └── checkpoint.md

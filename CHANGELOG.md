@@ -1,5 +1,19 @@
 # Waydroid Shared Folders - Changelog
 
+## v1.3.0 (2026-08-01)
+
+### Adicionado
+- **GUI** (`waydroid-binds-gui`): painel PySide6 com abas para Pastas compartilhadas, Rede/Firewall e Mídia do WhatsApp
+  - Aplica/reverte binds seletivamente (checkbox por pasta) com persistência no boot
+  - Diagnóstico de firewall em tempo real (via `status` KEY=VALUE) e botão Aplicar/Reparar
+  - Cópia de mídias existentes do WhatsApp
+  - Modo `--dry-run` para testes sem executar comandos
+- **Empacotamento**: `.deb` (debian), `.rpm` (rpmbuild), Arch (`PKGBUILD`) e `Flatpak`
+- **GitHub Actions**: CI (shellcheck, ruff, `py_compile`, smoke test offscreen da GUI) e Release (gera `.deb`/`.rpm`/`.pkg.tar.zst`/`.flatpak` e publica no GitHub Releases em tags `v*`)
+- `setup-waydroid-binds.sh`: aceita seleção seletiva de binds por nome (ex.: `pkexec ./setup-waydroid-binds.sh Downloads Imagens`)
+- `setup-waydroid-firewall.sh`: novo modo `status` com saída KEY=VALUE consumível por máquina
+- `copy-existing-media.sh`: detecção automática do usuário real (`PKEXEC_UID`/`SUDO_USER`) em vez de caminhos hardcoded
+
 ## v1.2.0 (2026-08-01)
 
 ### Adicionado

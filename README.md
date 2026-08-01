@@ -1,6 +1,23 @@
 # Waydroid Shared Folders
 
-Bind mounts entre o host Linux e o Android (Waydroid) usando o método oficial da documentação.
+Bind mounts entre o host Linux e o Android (Waydroid) usando o método oficial da documentação, com GUI e firewall auto-config.
+
+## Instalação
+
+Distribuição via empacotamento (gera `.deb`, `.rpm`, `.pkg.tar.zst` e `.flatpak` na CI):
+
+```bash
+# Debian/Ubuntu (na pasta do repo)
+cp -r packaging/debian debian && dpkg-buildpackage -b -us -uc
+
+# Arch
+makepkg -f -p packaging/arch/PKGBUILD
+
+# Roda direto do repositório (sem instalar)
+./waydroid-binds-gui
+```
+
+Depois de instalar, execute `waydroid-binds-gui` para abrir o painel.
 
 ## Mapeamento
 
@@ -23,6 +40,9 @@ Bind mounts entre o host Linux e o Android (Waydroid) usando o método oficial d
 # Ativar binds (pede senha via pkexec)
 pkexec ./setup-waydroid-binds.sh
 
+# Ativar apenas alguns binds (Downloads, Documentos, Imagens, videos, WhatsApp)
+pkexec ./setup-waydroid-binds.sh Downloads Imagens
+
 # Reverter binds
 pkexec ./revert-waydroid-binds.sh
 
@@ -40,6 +60,21 @@ pkexec ./setup-waydroid-firewall.sh revert
 ```
 
 Os binds e as regras de firewall são automaticamente restaurados toda vez que o container Waydroid inicia, via hook em `/usr/bin/waydroid-startup-scripts`.
+
+## GUI
+
+`waydroid-binds-gui` (PySide6) reúne tudo num painel:
+
+- **Pastas compartilhadas**: aplica/reverte os binds seletivamente (checkbox por pasta)
+- **Rede / Firewall**: diagnóstico em tempo real (forwarding, zona do firewalld, conectividade) e botão Aplicar/Reparar
+- **Mídia do WhatsApp**: copia mídias que existiam antes do bind
+
+```bash
+./waydroid-binds-gui              # abrir a GUI
+./waydroid-binds-gui --dry-run    # modo de teste: não executa comandos
+```
+
+As ações privilegiadas (mount, firewall) pedem senha via `pkexec`.
 
 ## Scripts
 

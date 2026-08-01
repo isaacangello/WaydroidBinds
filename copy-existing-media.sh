@@ -6,18 +6,27 @@
 
 echo "=== Copiando mídias existentes do WhatsApp ==="
 
-SRC="/sdcard/Android/media/com.whatsapp/WhatsApp/Media"
-DST="/sdcard/Android/media/com.whatsapp/WhatsApp/Media"  # mesmo caminho (bind mount)
+# Detect real user
+if [ -n "${PKEXEC_UID:-}" ]; then
+    REAL_USER=$(id -nu "$PKEXEC_UID" 2>/dev/null)
+elif [ -n "${SUDO_USER:-}" ]; then
+    REAL_USER="$SUDO_USER"
+else
+    REAL_USER=$(logname 2>/dev/null || echo "$USER")
+fi
+USER_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6)
+[ -z "$USER_HOME" ] && { echo "ERRO: não foi possível detectar o usuário"; exit 1; }
 
 # Desmonta bind temporariamente pra acessar dados originais
-WAYDROID_MEDIA="/home/isaacca/.local/share/waydroid/data/media/0"
+WAYDROID_MEDIA="$USER_HOME/.local/share/waydroid/data/media/0"
 TARGET="$WAYDROID_MEDIA/Android/media/com.whatsapp/WhatsApp/Media"
-HOST_DIR="/home/isaacca/Waydroid/WhatsApp"
+HOST_DIR="$USER_HOME/Waydroid/WhatsApp"
 
 mountpoint -q "$TARGET" && umount "$TARGET" && echo "Bind desmontado para cópia"
 
 echo "Copiando do Android para $HOST_DIR ..."
-waydroid shell cp -r "$SRC"/* "$DST"/ 2>/dev/null || waydroid shell cp -r "$SRC"/. "$DST"/ 2>/dev/null || echo "Nada a copiar"
+MEDIA="/sdcard/Android/media/com.whatsapp/WhatsApp/Media"
+waydroid shell cp -r "$MEDIA"/* "$MEDIA"/ 2>/dev/null || waydroid shell cp -r "$MEDIA"/. "$MEDIA"/ 2>/dev/null || echo "Nada a copiar"
 
 # Reaplica bind
 mount --bind "$HOST_DIR" "$TARGET" && echo "Bind reaplicado"

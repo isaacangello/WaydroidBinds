@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shellcheck
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck
+          shellcheck setup-waydroid-binds.sh setup-waydroid-firewall.sh \
+            revert-waydroid-binds.sh copy-existing-media.sh waydroid-binds-gui
+      - name: Ruff (python)
+        run: |
+          pip install ruff
+          ruff check gui/
+          ruff format --check gui/
+      - name: Py compile
+        run: python3 -m py_compile gui/*.py
+      - name: Actionlint
+        run: |
+          bash <(curl -sSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependências do Qt offscreen
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libgl1 libegl1 libxkbcommon0 libglib2.0-0
+      - name: Instalar PySide6
+        run: pip install PySide6
+      - name: Smoke test da GUI
+        run: python3 gui/smoke_test.py

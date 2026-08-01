@@ -11,6 +11,7 @@
 # Uso:
 #   pkexec ./setup-waydroid-firewall.sh            # detecta e configura
 #   pkexec ./setup-waydroid-firewall.sh check      # só diagnóstico (não altera nada)
+#   pkexec ./setup-waydroid-firewall.sh status     # diagnóstico em formato KEY=VALUE (GUI)
 #   pkexec ./setup-waydroid-firewall.sh revert     # desfaz a configuração
 
 set -euo pipefail
@@ -25,9 +26,10 @@ SEND="# Waydroid Shared Folders END"
 
 MODE="apply"
 case "${1:-}" in
-    check|status|-c)   MODE="check" ;;
-    revert|--revert|-r) MODE="revert" ;;
-    *)                 MODE="apply" ;;
+    check|-c)            MODE="check" ;;
+    status|-s)           MODE="status" ;;
+    revert|--revert|-r)  MODE="revert" ;;
+    *)                   MODE="apply" ;;
 esac
 
 [ "$(id -u)" = "0" ] || { echo "ERRO: execute com pkexec ou sudo."; exit 1; }
@@ -236,6 +238,37 @@ check() {
     fi
 }
 
+# Saída legível por máquina (KEY=VALUE) para a GUI
+status() {
+    local policy zone container conn
+    policy=$(iptables -L FORWARD -n 2>/dev/null | sed -n '1s/.*(policy \([A-Z]*\)).*/\1/p' || true)
+    zone=""
+    if [ "$FIREWALL" = "firewalld" ]; then
+        zone=$(firewall-cmd --get-zone-of-interface="$WAYDROID_IF" 2>/dev/null || true)
+    fi
+    if systemctl is-active waydroid-container >/dev/null 2>&1; then
+        container="active"
+        if waydroid shell -- ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1; then
+            conn="OK"
+        else
+            conn="FAIL"
+        fi
+    else
+        container="inactive"
+        conn="NA"
+    fi
+    cat <<EOF
+ip_forward=$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)
+firewall=${FIREWALL:-unknown}
+waydroid_net=${WAYDROID_NET:-unknown}
+default_iface=${DEFAULT_IF:-unknown}
+forward_policy=${policy:-unknown}
+zone=${zone:-}
+container=${container:-unknown}
+connectivity=${conn:-NA}
+EOF
+}
+
 revert() {
     msg "== Revertendo configurações de firewall do Waydroid =="
     if [ -f "$STARTUP_SCRIPT" ]; then
@@ -274,6 +307,9 @@ detect_firewall
 case "$MODE" in
     check)
         check
+        ;;
+    status)
+        status
         ;;
     revert)
         revert

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+*.deb
+*.rpm
+*.tar.gz
+*.pkg.tar.zst
+*.flatpak
+
+/repo/
+/build/
+/debian/
+actionlint
+packaging/flatpak/.flatpak-builder/
+packaging/flatpak/build/

@@ -1,0 +1,37 @@
+app-id: org.waydroidbinds.WaydroidBinds
+runtime: org.kde.Platform
+runtime-version: '6.8'
+sdk: org.kde.Sdk
+command: waydroid-binds-gui
+
+finish-args:
+  - --socket=x11
+  - --socket=wayland
+  - --share=ipc
+  - --share=network
+  - --socket=session-bus
+  - --filesystem=host
+  - --talk-name=org.freedesktop.Flatpak
+
+modules:
+  - name: pyside6
+    buildsystem: simple
+    build-commands:
+      - python3 -m ensurepip --upgrade
+      - python3 -m pip install --no-cache-dir --prefix=${FLATPAK_DEST} PySide6
+    sources: []
+
+  - name: waydroid-binds
+    buildsystem: simple
+    build-commands:
+      - install -dm 0755 ${FLATPAK_DEST}/bin
+      - install -dm 0755 ${FLATPAK_DEST}/share/waydroid-binds
+      - install -m 0755 waydroid-binds-gui ${FLATPAK_DEST}/bin/waydroid-binds-gui
+      - install -m 0755 setup-waydroid-binds.sh setup-waydroid-firewall.sh revert-waydroid-binds.sh copy-existing-media.sh ${FLATPAK_DEST}/share/waydroid-binds/
+      - cp -a gui ${FLATPAK_DEST}/share/waydroid-binds/
+      - install -dm 0755 ${FLATPAK_DEST}/share/applications ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps
+      - install -m 0644 gui/resources/waydroid-binds.desktop ${FLATPAK_DEST}/share/applications/
+      - install -m 0644 gui/resources/waydroid-binds.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/
+    sources:
+      - type: dir
+        path: ../..

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Waydroid Binds
+Name[pt_BR]=Waydroid Binds
+Comment=Gerenciar pastas compartilhadas e firewall do Waydroid
+Comment[pt_BR]=Gerenciar pastas compartilhadas e firewall do Waydroid
+Exec=waydroid-binds-gui
+Icon=waydroid-binds
+Terminal=false
+Categories=System;Utility;
+StartupNotify=true
