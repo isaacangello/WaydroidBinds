@@ -3,7 +3,7 @@
 Publicação do pacote Flatpak no Flathub.
 
 - **App ID:** `io.github.isaacangello.waydroidbinds`
-- **Runtime:** `org.kde.Platform`/`org.kde.Sdk` 6.8 + BaseApp `io.qt.PySide.BaseApp` 6.8
+- **Runtime:** `org.kde.Platform`/`org.kde.Sdk` 6.11 + BaseApp `io.qt.PySide.BaseApp` 6.11
 - **Conta de desenvolvedor no Flathub (ID):** `50752`
 
 ## Estrutura de manifests

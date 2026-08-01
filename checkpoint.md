@@ -15,7 +15,7 @@
   - `copy-existing-media.sh` detecta o usuário real (PKEXEC_UID/SUDO_USER)
 
 ### 🚀 Flathub — preparado (pendente: submeter)
-- App ID: **`io.github.isaacangello.waydroidbinds`** (runtime KDE 6.8 + `io.qt.PySide.BaseApp`)
+- App ID: **`io.github.isaacangello.waydroidbinds`** (runtime 6.11 + `io.qt.PySide.BaseApp`)
 - Arquivos prontos: `metainfo.xml`, `LICENSE` (GPL-3.0), screenshots em `docs/screenshots/`, `.desktop`/`.svg` renomeados
 - Manifest de dev (fonte local) e de submissão (`*.flathub.yml`, tarball v1.3.0 + `x-checker-data`)
 - Flatpak `bind_status` lê mounts do host via `flatpak-spawn --host mount`
