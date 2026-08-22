@@ -33,8 +33,8 @@ jobs:
       - name: Empacotar .rpm
         run: |
           mkdir -p ~/rpmbuild/SOURCES
-          tar -czf ~/rpmbuild/SOURCES/waydroid-binds-1.3.0.tar.gz \
-            --transform 's,^,waydroid-binds-1.3.0/,' \
+          tar -czf ~/rpmbuild/SOURCES/waydroid-binds-${{ github.ref_name }}.tar.gz \
+            --transform 's,^,waydroid-binds-${{ github.ref_name }}/,' \
             --exclude='*/__pycache__/*' \
             setup-waydroid-binds.sh setup-waydroid-firewall.sh \
             revert-waydroid-binds.sh copy-existing-media.sh \
@@ -54,26 +54,17 @@ jobs:
       - name: Instalar dependências
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed base-devel fakeroot curl
-      - name: Baixar tarball do release
+          pacman -S --noconfirm --needed base-devel fakeroot
+      - name: Empacotar (makepkg)
         run: |
           mkdir -p /work
           TAG="${GITHUB_REF_NAME}"
           curl -sL "https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/${TAG}.tar.gz" \
             -o "/work/waydroid-binds-${TAG}.tar.gz"
-      - name: Preparar PKGBUILD para fonte local
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          SHA256=$(sha256sum "/work/waydroid-binds-${TAG}.tar.gz" | cut -d' ' -f1)
-          sed -i "s|^source=.*|source=(\"waydroid-binds-${TAG}.tar.gz::file:///work/waydroid-binds-${TAG}.tar.gz\")|" packaging/arch/PKGBUILD
-          sed -i "s|^sha256sums=.*|sha256sums=('${SHA256}')|" packaging/arch/PKGBUILD
-          cat packaging/arch/PKGBUILD
-      - name: Empacotar (makepkg)
-        run: |
           cp packaging/arch/PKGBUILD /work/PKGBUILD
           useradd -m builder
           chown -R builder /work
-          su builder -c 'cd /work && makepkg -f --nodeps --noconfirm'
+          su builder -c 'cd /work && SRCDEST=/work makepkg -f --nodeps --noconfirm'
           cp /work/*.pkg.tar.zst "$GITHUB_WORKSPACE/"
       - uses: actions/upload-artifact@v4
         with:
@@ -124,18 +115,16 @@ jobs:
           else
             echo "has_key=false" >> "$GITHUB_OUTPUT"
           fi
-- name: Publicar no AUR (via aurpublish)
+      - name: Publicar no AUR
         if: steps.aur_secret.outputs.has_key == 'true'
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: |
           set -e
           cd /tmp
-          # Tentar clonar repo AUR existente
           if git clone ssh://aur@aur.archlinux.org/waydroid-binds.git aur-waydroid-binds 2>/dev/null; then
             cd aur-waydroid-binds
           else
-            # Repo não existe, criar novo
             mkdir -p aur-waydroid-binds
             cd aur-waydroid-binds
             git init
@@ -143,21 +132,18 @@ jobs:
             git config user.email "github-actions@github.com"
             git remote add origin ssh://aur@aur.archlinux.org/waydroid-binds.git
           fi
-          # Copiar PKGBUILD e .SRCINFO atualizados
           cp "${GITHUB_WORKSPACE}/packaging/arch/PKGBUILD" .
           cp "${GITHUB_WORKSPACE}/packaging/arch/.SRCINFO" .
           git add PKGBUILD .SRCINFO
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git commit -m "Release ${{ steps.sha256.outputs.tag }}" || true
-          # Configurar SSH
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org > ~/.ssh/known_hosts 2>/dev/null
           chmod 644 ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
-          # Push com verificação de host key automática (known_hosts já populado)
           GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git push origin master
 
   release:
