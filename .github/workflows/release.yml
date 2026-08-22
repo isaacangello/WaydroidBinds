@@ -94,7 +94,7 @@ jobs:
       - name: Instalar dependências
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed base-devel git curl
+          pacman -S --noconfirm --needed base-devel git curl openssh
       - name: Calcular sha256 do tarball
         id: sha256
         run: |
