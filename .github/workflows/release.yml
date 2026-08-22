@@ -63,6 +63,7 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed base-devel fakeroot
       - name: Baixar tarball e calcular sha256
+        id: download_sha256
         run: |
           set -e
           TAG="${GITHUB_REF_NAME#v}"
