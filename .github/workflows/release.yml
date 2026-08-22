@@ -9,6 +9,7 @@ jobs:
   deb:
     runs-on: ubuntu-latest
     container: debian:bookworm
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
       - name: Instalar dependências
@@ -26,6 +27,7 @@ jobs:
   rpm:
     runs-on: ubuntu-latest
     container: fedora:latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
       - name: Instalar dependências
@@ -52,6 +54,7 @@ jobs:
   pacman:
     runs-on: ubuntu-latest
     container: archlinux:latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
       - name: Instalar dependências
