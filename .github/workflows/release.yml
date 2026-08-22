@@ -129,18 +129,20 @@ jobs:
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: |
-          # Clonar ou criar repo AUR em diretório separado
+          set -e
           cd /tmp
-          git clone ssh://aur@aur.archlinux.org/waydroid-binds.git aur-waydroid-binds 2>/dev/null || {
+          # Tentar clonar repo AUR existente
+          if git clone ssh://aur@aur.archlinux.org/waydroid-binds.git aur-waydroid-binds 2>/dev/null; then
+            cd aur-waydroid-binds
+          else
             # Repo não existe, criar novo
-            mkdir aur-waydroid-binds
+            mkdir -p aur-waydroid-binds
             cd aur-waydroid-binds
             git init
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
             git remote add origin ssh://aur@aur.archlinux.org/waydroid-binds.git
-          }
-          cd aur-waydroid-binds
+          fi
           # Copiar PKGBUILD e .SRCINFO atualizados
           cp "${GITHUB_WORKSPACE}/packaging/arch/PKGBUILD" .
           cp "${GITHUB_WORKSPACE}/packaging/arch/.SRCINFO" .
