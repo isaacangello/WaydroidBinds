@@ -54,16 +54,15 @@ jobs:
       - name: Instalar dependências
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed base-devel fakeroot
-      - name: Empacotar (makepkg)
+          pacman -S --noconfirm --needed base-devel fakeroot curl
+      - name: Baixar tarball do release
         run: |
           mkdir -p /work
-          tar -czf /work/waydroid-binds-${{ github.ref_name }}.tar.gz \
-            --transform 's,^,waydroid-binds-${{ github.ref_name }}/,' \
-            --exclude='*/__pycache__/*' \
-            setup-waydroid-binds.sh setup-waydroid-firewall.sh \
-            revert-waydroid-binds.sh copy-existing-media.sh \
-            waydroid-binds-gui gui LICENSE
+          TAG="${GITHUB_REF_NAME}"
+          curl -sL "https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/${TAG}.tar.gz" \
+            -o "/work/waydroid-binds-${TAG}.tar.gz"
+      - name: Empacotar (makepkg)
+        run: |
           cp packaging/arch/PKGBUILD /work/PKGBUILD
           useradd -m builder
           chown -R builder /work
