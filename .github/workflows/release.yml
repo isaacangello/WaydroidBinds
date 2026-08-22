@@ -124,7 +124,7 @@ jobs:
           else
             echo "has_key=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Publicar no AUR (via aurpublish)
+- name: Publicar no AUR (via aurpublish)
         if: steps.aur_secret.outputs.has_key == 'true'
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -153,13 +153,12 @@ jobs:
           # Configurar SSH
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
+          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org > ~/.ssh/known_hosts 2>/dev/null
           chmod 644 ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
-          # Testar conexão SSH
-          ssh -o BatchMode=yes -o ConnectTimeout=10 aur@aur.archlinux.org true 2>/dev/null || true
-          git push origin master
+          # Push com verificação de host key automática (known_hosts já populado)
+          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git push origin master
 
   release:
     runs-on: ubuntu-latest
