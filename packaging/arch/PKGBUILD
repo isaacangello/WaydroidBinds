@@ -1,6 +1,6 @@
 # Maintainer: Isaac Angello <isaac.angello@gmail.com>
 pkgname=waydroid-binds
-pkgver=1.4.0
+pkgver=1.4.1
 pkgrel=1
 pkgdesc="GUI e scripts para pastas compartilhadas e firewall do Waydroid"
 arch=('any')
@@ -9,7 +9,7 @@ license=('GPL3')
 depends=('python' 'pyside6')
 makedepends=('git')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('61c3e84a95cf24011f9b3af3579a14f62d1b2d48a523187969c98fd96d1e90ac')
+sha256sums=('e4648075ecfde6f2459f12a20170b05b5852aa3ddcf9bf84d85c5b276c91a528')
 
 _srcdir="WaydroidBinds-${pkgver}"
 
