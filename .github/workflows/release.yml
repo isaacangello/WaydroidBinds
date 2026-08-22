@@ -64,7 +64,9 @@ jobs:
       - name: Preparar PKGBUILD para fonte local
         run: |
           TAG="${GITHUB_REF_NAME}"
+          SHA256=$(sha256sum "/work/waydroid-binds-${TAG}.tar.gz" | cut -d' ' -f1)
           sed -i "s|^source=.*|source=(\"waydroid-binds-${TAG}.tar.gz::file:///work/waydroid-binds-${TAG}.tar.gz\")|" packaging/arch/PKGBUILD
+          sed -i "s|^sha256sums=.*|sha256sums=('${SHA256}')|" packaging/arch/PKGBUILD
           cat packaging/arch/PKGBUILD
       - name: Empacotar (makepkg)
         run: |
