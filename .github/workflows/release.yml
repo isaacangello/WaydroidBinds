@@ -32,6 +32,7 @@ jobs:
         run: dnf install -y rpm-build python3
       - name: Empacotar .rpm
         run: |
+          set -e
           mkdir -p /github/home/rpmbuild/SOURCES
           TAG="${GITHUB_REF_NAME#v}"
           tar -czf /github/home/rpmbuild/SOURCES/waydroid-binds-${TAG}.tar.gz \
@@ -40,6 +41,7 @@ jobs:
             setup-waydroid-binds.sh setup-waydroid-firewall.sh \
             revert-waydroid-binds.sh copy-existing-media.sh \
             waydroid-binds-gui gui LICENSE
+          ls -la /github/home/rpmbuild/SOURCES/
           rpmbuild -bb packaging/rpm/waydroid-binds.spec
           cp /github/home/rpmbuild/RPMS/noarch/waydroid-binds-*.rpm "$GITHUB_WORKSPACE/"
       - uses: actions/upload-artifact@v4
