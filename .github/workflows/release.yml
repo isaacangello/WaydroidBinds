@@ -150,9 +150,15 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git commit -m "Release ${{ steps.sha256.outputs.tag }}" || true
+          # Configurar SSH
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          # Testar conexão SSH
+          ssh -o BatchMode=yes -o ConnectTimeout=10 aur@aur.archlinux.org true 2>/dev/null || true
           git push origin master
 
   release:
