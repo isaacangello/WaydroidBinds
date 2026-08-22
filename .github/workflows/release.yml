@@ -68,7 +68,7 @@ jobs:
           TAG="${GITHUB_REF_NAME#v}"
           URL="https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${TAG}.tar.gz"
           curl -sL "$URL" -o "/tmp/waydroid-binds-${TAG}.tar.gz"
-          EXPECTED_SHA256="937632cbff1aa7d6d5316a71e45274493ca2eefc55b36779b4cf4d3b22764b89"
+          EXPECTED_SHA256="4d925441c554e7c3d34e0697b72a4f31a5feb8390a7fdfdcf53251491a8731c5"
           ACTUAL_SHA256=$(sha256sum "/tmp/waydroid-binds-${TAG}.tar.gz" | cut -d' ' -f1)
           if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
             echo "ERRO: sha256 não confere! Esperado: $EXPECTED_SHA256, Atual: $ACTUAL_SHA256"
