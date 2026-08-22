@@ -62,20 +62,22 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed base-devel fakeroot
-      - name: Baixar e verificar tarball
+      - name: Baixar tarball e calcular sha256
         run: |
           set -e
           TAG="${GITHUB_REF_NAME#v}"
           URL="https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${TAG}.tar.gz"
           curl -sL "$URL" -o "/tmp/waydroid-binds-${TAG}.tar.gz"
-          EXPECTED_SHA256="4d925441c554e7c3d34e0697b72a4f31a5feb8390a7fdfdcf53251491a8731c5"
           ACTUAL_SHA256=$(sha256sum "/tmp/waydroid-binds-${TAG}.tar.gz" | cut -d' ' -f1)
-          if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
-            echo "ERRO: sha256 não confere! Esperado: $EXPECTED_SHA256, Atual: $ACTUAL_SHA256"
-            exit 1
-          fi
+          echo "sha256=$ACTUAL_SHA256" >> "$GITHUB_OUTPUT"
           mkdir -p /work
           cp "/tmp/waydroid-binds-${TAG}.tar.gz" "/work/waydroid-binds-${TAG}.tar.gz"
+      - name: Atualizar PKGBUILD com sha256 correto
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          SHA256="${{ steps.download_sha256.outputs.sha256 }}"
+          sed -i "s/^sha256sums=.*/sha256sums=('${SHA256}')/" packaging/arch/PKGBUILD
+          cat packaging/arch/PKGBUILD
       - name: Empacotar (makepkg)
         run: |
           set -e
