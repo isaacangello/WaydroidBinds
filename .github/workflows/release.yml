@@ -130,11 +130,15 @@ jobs:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: |
           cd packaging/arch
+          # Inicializar repo git para o aurpublish
+          git init
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add PKGBUILD .SRCINFO
+          git commit -m "Release ${{ steps.sha256.outputs.tag }}"
           eval "$(ssh-agent -s)"
           echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
           ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
           aurpublish --no-verify
 
   release:
