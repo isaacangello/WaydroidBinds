@@ -103,8 +103,16 @@ jobs:
           cd packaging/arch
           makepkg --printsrcinfo > .SRCINFO
           cat .SRCINFO
+      - name: Verificar secret AUR
+        id: aur_secret
+        run: |
+          if [ -n "${{ secrets.AUR_SSH_PRIVATE_KEY }}" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Publicar no AUR (via aurpublish)
-        if: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
+        if: steps.aur_secret.outputs.has_key == 'true'
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: |
