@@ -13,11 +13,6 @@ sha256sums=('61c3e84a95cf24011f9b3af3579a14f62d1b2d48a523187969c98fd96d1e90ac')
 
 _srcdir="WaydroidBinds-${pkgver}"
 
-pkgver() {
-  cd "${_srcdir}" 2>/dev/null || return 1
-  git describe --tags --always 2>/dev/null | sed 's/^v//;s/-/+/g' || echo "${pkgver}"
-}
-
 prepare() {
   cd "${_srcdir}"
 }
