@@ -1,6 +1,6 @@
 # Maintainer: Isaac Angello <isaac.angello@gmail.com>
 pkgname=waydroid-binds
-pkgver=1.3.0
+pkgver=1.4.0
 pkgrel=1
 pkgdesc="GUI e scripts para pastas compartilhadas e firewall do Waydroid"
 arch=('any')
@@ -11,22 +11,24 @@ makedepends=('git')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${pkgver}.tar.gz")
 sha256sums=('d0937428ab8b25446e2497a2a37fc1906d3e0a4c81b6a4632b714577ec66b69b')
 
+_srcdir="WaydroidBinds-${pkgver}"
+
 pkgver() {
-  cd "${pkgname}-${pkgver}" 2>/dev/null || return 1
+  cd "${_srcdir}" 2>/dev/null || return 1
   git describe --tags --always 2>/dev/null | sed 's/^v//;s/-/+/g' || echo "${pkgver}"
 }
 
 prepare() {
-  cd "${pkgname}-${pkgver}"
+  cd "${_srcdir}"
 }
 
 check() {
-  cd "${pkgname}-${pkgver}"
+  cd "${_srcdir}"
   python3 -m py_compile gui/*.py
 }
 
 package() {
-  cd "${pkgname}-${pkgver}"
+  cd "${_srcdir}"
   install -dm 0755 "$pkgdir/usr/bin"
   install -dm 0755 "$pkgdir/usr/share/waydroid-binds"
   install -m 0755 waydroid-binds-gui "$pkgdir/usr/bin/waydroid-binds-gui"
