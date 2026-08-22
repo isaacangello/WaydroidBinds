@@ -37,12 +37,13 @@ jobs:
           set -e
           mkdir -p /github/home/rpmbuild/SOURCES
           TAG="${GITHUB_REF_NAME#v}"
-          tar -czf /github/home/rpmbuild/SOURCES/waydroid-binds-${TAG}.tar.gz \
-            --transform 's,^,waydroid-binds-${TAG}/,' \
-            --exclude='*/__pycache__/*' \
-            setup-waydroid-binds.sh setup-waydroid-firewall.sh \
+          # Create tarball with correct directory structure for %setup
+          mkdir -p /tmp/waydroid-binds-${TAG}
+          cp -r setup-waydroid-binds.sh setup-waydroid-firewall.sh \
             revert-waydroid-binds.sh copy-existing-media.sh \
-            waydroid-binds-gui gui LICENSE
+            waydroid-binds-gui gui LICENSE /tmp/waydroid-binds-${TAG}/
+          tar -czf /github/home/rpmbuild/SOURCES/waydroid-binds-${TAG}.tar.gz \
+            -C /tmp waydroid-binds-${TAG}
           ls -la /github/home/rpmbuild/SOURCES/
           rpmbuild -bb packaging/rpm/waydroid-binds.spec
           cp /github/home/rpmbuild/RPMS/noarch/waydroid-binds-*.rpm "$GITHUB_WORKSPACE/"
@@ -61,12 +62,24 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed base-devel fakeroot
+      - name: Baixar e verificar tarball
+        run: |
+          set -e
+          TAG="${GITHUB_REF_NAME#v}"
+          URL="https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${TAG}.tar.gz"
+          curl -sL "$URL" -o "/tmp/waydroid-binds-${TAG}.tar.gz"
+          EXPECTED_SHA256="937632cbff1aa7d6d5316a71e45274493ca2eefc55b36779b4cf4d3b22764b89"
+          ACTUAL_SHA256=$(sha256sum "/tmp/waydroid-binds-${TAG}.tar.gz" | cut -d' ' -f1)
+          if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+            echo "ERRO: sha256 não confere! Esperado: $EXPECTED_SHA256, Atual: $ACTUAL_SHA256"
+            exit 1
+          fi
+          mkdir -p /work
+          cp "/tmp/waydroid-binds-${TAG}.tar.gz" "/work/waydroid-binds-${TAG}.tar.gz"
       - name: Empacotar (makepkg)
         run: |
-          mkdir -p /work
+          set -e
           TAG="${GITHUB_REF_NAME#v}"
-          curl -sL "https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${TAG}.tar.gz" \
-            -o "/work/waydroid-binds-${TAG}.tar.gz"
           cp packaging/arch/PKGBUILD /work/PKGBUILD
           useradd -m builder
           chown -R builder /work
