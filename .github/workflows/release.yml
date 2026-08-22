@@ -61,12 +61,17 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           curl -sL "https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/${TAG}.tar.gz" \
             -o "/work/waydroid-binds-${TAG}.tar.gz"
+      - name: Preparar PKGBUILD para fonte local
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          sed -i "s|^source=.*|source=(\"waydroid-binds-${TAG}.tar.gz::file:///work/waydroid-binds-${TAG}.tar.gz\")|" packaging/arch/PKGBUILD
+          cat packaging/arch/PKGBUILD
       - name: Empacotar (makepkg)
         run: |
           cp packaging/arch/PKGBUILD /work/PKGBUILD
           useradd -m builder
           chown -R builder /work
-          su builder -c 'cd /work && SRCDEST=/work makepkg -f --nodeps --noconfirm'
+          su builder -c 'cd /work && makepkg -f --nodeps --noconfirm'
           cp /work/*.pkg.tar.zst "$GITHUB_WORKSPACE/"
       - uses: actions/upload-artifact@v4
         with:
