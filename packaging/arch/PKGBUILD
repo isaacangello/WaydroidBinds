@@ -9,7 +9,7 @@ license=('GPL3')
 depends=('python' 'pyside6')
 makedepends=('git')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/isaacangello/WaydroidBinds/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('e4648075ecfde6f2459f12a20170b05b5852aa3ddcf9bf84d85c5b276c91a528')
+sha256sums=('f365c2c3f2a5c2d9b33b01d0cb57d0814ab24696af5f2505be7a8b6af1b3a074')
 
 _srcdir="WaydroidBinds-${pkgver}"
 

@@ -33,8 +33,9 @@ jobs:
       - name: Empacotar .rpm
         run: |
           mkdir -p ~/rpmbuild/SOURCES
-          tar -czf ~/rpmbuild/SOURCES/waydroid-binds-${{ github.ref_name }}.tar.gz \
-            --transform 's,^,waydroid-binds-${{ github.ref_name }}/,' \
+          TAG="${GITHUB_REF_NAME#v}"
+          tar -czf ~/rpmbuild/SOURCES/waydroid-binds-${TAG}.tar.gz \
+            --transform 's,^,waydroid-binds-${TAG}/,' \
             --exclude='*/__pycache__/*' \
             setup-waydroid-binds.sh setup-waydroid-firewall.sh \
             revert-waydroid-binds.sh copy-existing-media.sh \

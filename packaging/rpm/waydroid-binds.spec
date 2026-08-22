@@ -1,5 +1,5 @@
 Name:           waydroid-binds
-Version:        1.3.0
+Version:        1.4.1
 Release:        1%{?dist}
 Summary:        Waydroid shared folders and firewall manager
 
@@ -49,6 +49,8 @@ install -m 0644 LICENSE %{buildroot}%{_licensedir}/%{name}/ 2>/dev/null || true
 %license LICENSE
 
 %changelog
+* Sat Aug 22 2026 Isaac Angello <isaac.angello@gmail.com> - 1.4.1-1
+- Remove Flatpak, fix GUI reactivity, update AUR PKGBUILD
 * Sat Aug 01 2026 Isaac Angello <isaac.angello@gmail.com> - 1.3.0-1
 - GUI PySide6 (painel completo).
 * Sat Aug 01 2026 Isaac Angello <isaac.angello@gmail.com> - 1.2.0-1
