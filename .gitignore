@@ -12,5 +12,9 @@ __pycache__/
 /build/
 /debian/
 actionlint
-packaging/flatpak/.flatpak-builder/
-packaging/flatpak/build/
+
+# AUR build artifacts
+pkg/
+src/
+*.pkg.tar.zst
+packaging/arch/.SRCINFO

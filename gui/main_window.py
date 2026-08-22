@@ -39,12 +39,12 @@ class MainWindow(QMainWindow):
     def __init__(self, runner: TaskRunner) -> None:
         super().__init__()
         self.runner = runner
-        self._running = 0
+        self._running_tags: set[str] = set()
         self._checks: dict[str, QCheckBox] = {}
         self._bind_state: dict[str, QLabel] = {}
         self._fw_cards: dict[str, QLabel] = {}
         self._action_buttons: list[QPushButton] = []
-        self._fw_loaded = False
+        self._button_tags: dict[QPushButton, str] = {}
 
         self.setWindowTitle("Waydroid Binds")
         self.resize(880, 660)
@@ -120,7 +120,8 @@ class MainWindow(QMainWindow):
         self.btn_bind_apply = QPushButton("Aplicar selecionados")
         self.btn_bind_revert = QPushButton("Reverter todos")
         self.btn_bind_refresh = QPushButton("Atualizar")
-        self._action_buttons += [self.btn_bind_apply, self.btn_bind_revert]
+        self._register_button(self.btn_bind_apply, "bind_apply")
+        self._register_button(self.btn_bind_revert, "bind_revert")
 
         row = QHBoxLayout()
         row.addWidget(self.btn_bind_apply)
@@ -170,11 +171,9 @@ class MainWindow(QMainWindow):
         self.btn_fw_check = QPushButton("Diagnóstico")
         self.btn_fw_revert = QPushButton("Reverter")
         self.btn_fw_refresh = QPushButton("Atualizar")
-        self._action_buttons += [
-            self.btn_fw_apply,
-            self.btn_fw_check,
-            self.btn_fw_revert,
-        ]
+        self._register_button(self.btn_fw_apply, "fw_apply")
+        self._register_button(self.btn_fw_check, "fw_check")
+        self._register_button(self.btn_fw_revert, "fw_revert")
 
         row = QHBoxLayout()
         row.addWidget(self.btn_fw_apply)
@@ -209,11 +208,16 @@ class MainWindow(QMainWindow):
         info.setStyleSheet(f"color:{MUTED};")
         box_v.addWidget(info)
         self.btn_media_copy = QPushButton("Copiar mídias existentes")
-        self._action_buttons.append(self.btn_media_copy)
+        self._register_button(self.btn_media_copy, "media_copy")
         box_v.addWidget(self.btn_media_copy, alignment=Qt.AlignLeft)
         v.addWidget(box)
         v.addStretch(1)
         return tab
+
+    def _register_button(self, button: QPushButton, tag: str) -> None:
+        self._action_buttons.append(button)
+        self._button_tags[button] = tag
+        button.setProperty("running", False)
 
     def _wire(self) -> None:
         self.btn_bind_apply.clicked.connect(self.on_bind_apply)
@@ -227,6 +231,7 @@ class MainWindow(QMainWindow):
 
         self._tabs.currentChanged.connect(self._on_tab_changed)
         self.runner.started.connect(self._on_started)
+        self.runner.output.connect(self._on_output)
         self.runner.finished.connect(self._on_finished)
 
     # ---------- ações ----------
@@ -238,7 +243,9 @@ class MainWindow(QMainWindow):
                 self, "Waydroid Binds", "Selecione ao menos uma pasta para aplicar."
             )
             return
-        self.runner.run("bind_apply", [str(paths.BINDS_SCRIPT)] + selected)
+        self.runner.run(
+            "bind_apply", [str(paths.BINDS_SCRIPT)] + selected, timeout_ms=120000
+        )
 
     def on_bind_revert(self) -> None:
         answer = QMessageBox.question(
@@ -248,16 +255,22 @@ class MainWindow(QMainWindow):
             "persistência do boot. Continuar?",
         )
         if answer == QMessageBox.Yes:
-            self.runner.run("bind_revert", [str(paths.REVERT_BINDS_SCRIPT)])
+            self.runner.run(
+                "bind_revert", [str(paths.REVERT_BINDS_SCRIPT)], timeout_ms=60000
+            )
 
     def on_fw_apply(self) -> None:
-        self.runner.run("fw_apply", [str(paths.FIREWALL_SCRIPT)])
+        self.runner.run("fw_apply", [str(paths.FIREWALL_SCRIPT)], timeout_ms=120000)
 
     def on_fw_check(self) -> None:
-        self.runner.run("fw_check", [str(paths.FIREWALL_SCRIPT), "check"])
+        self.runner.run(
+            "fw_check", [str(paths.FIREWALL_SCRIPT), "check"], timeout_ms=60000
+        )
 
     def on_fw_revert(self) -> None:
-        self.runner.run("fw_revert", [str(paths.FIREWALL_SCRIPT), "revert"])
+        self.runner.run(
+            "fw_revert", [str(paths.FIREWALL_SCRIPT), "revert"], timeout_ms=60000
+        )
 
     def on_media_copy(self) -> None:
         answer = QMessageBox.question(
@@ -267,11 +280,14 @@ class MainWindow(QMainWindow):
             "as mídias antigas. Continuar?",
         )
         if answer == QMessageBox.Yes:
-            self.runner.run("media_copy", [str(paths.MEDIA_SCRIPT)])
+            self.runner.run("media_copy", [str(paths.MEDIA_SCRIPT)], timeout_ms=120000)
 
     # ---------- refresh ----------
 
     def refresh_binds(self) -> None:
+        QTimer.singleShot(0, self._do_refresh_binds)
+
+    def _do_refresh_binds(self) -> None:
         state = status_mod.bind_status()
         for name, label in self._bind_state.items():
             ok = state.get(name, False)
@@ -282,42 +298,67 @@ class MainWindow(QMainWindow):
     def refresh_firewall(self) -> None:
         self.runner.run("fw_status", [str(paths.FIREWALL_SCRIPT), "status"])
 
+    def _apply_firewall_status(self, data: dict[str, str]) -> None:
+        for key, label in self._fw_cards.items():
+            value = data.get(key, "—")
+            if key == "ip_forward":
+                value = "ON" if value == "1" else "OFF"
+                color = GOOD if value == "ON" else BAD
+                label.setText(colored(value, color))
+            elif key == "connectivity":
+                color = GOOD if value == "OK" else BAD if value == "FAIL" else MUTED
+                label.setText(colored(value, color))
+            elif key == "forward_policy":
+                color = GOOD if value == "ACCEPT" else BAD
+                label.setText(colored(value, color))
+            elif key == "zone":
+                color = GOOD if value == "trusted" else WARN if value else BAD
+                label.setText(colored(value or "—", color))
+            elif key == "container":
+                color = GOOD if value == "active" else MUTED
+                label.setText(colored(value, color))
+            else:
+                label.setText(value)
+
     def _on_tab_changed(self, index: int) -> None:
-        if index == 1 and not self._fw_loaded:
-            self._fw_loaded = True
+        if index == 1:
             self.refresh_firewall()
 
     # ---------- runner ----------
 
     def _on_started(self, tag: str, display: str) -> None:
-        self._running += 1
-        self._set_actions_enabled(False)
+        self._running_tags.add(tag)
+        self._set_button_running(tag, True)
         self._progress.setVisible(True)
         self.log(f"→ {display}")
 
+    def _on_output(self, tag: str, line: str) -> None:
+        self.log(f"    {line}")
+
     def _on_finished(self, tag: str, stdout: str, stderr: str, code: int) -> None:
-        self._running = max(0, self._running - 1)
-        if not self.runner.busy():
+        self._running_tags.discard(tag)
+        self._set_button_running(tag, False)
+        if not self._running_tags:
             self._progress.setVisible(False)
-            self._set_actions_enabled(True)
         self._log_result(stdout, stderr, code)
 
-        if tag in ("bind_apply", "bind_revert"):
+        if tag == "fw_status":
+            self._apply_firewall_status(status_mod.parse_firewall_status(stdout))
+        elif tag in ("bind_apply", "bind_revert"):
             self.refresh_binds()
-        if tag in ("fw_apply", "fw_check", "fw_revert"):
+        elif tag in ("fw_apply", "fw_check", "fw_revert"):
             self.refresh_firewall()
 
-    def _set_actions_enabled(self, enabled: bool) -> None:
-        for button in self._action_buttons:
-            button.setEnabled(enabled)
+    def _set_button_running(self, tag: str, running: bool) -> None:
+        for button, button_tag in self._button_tags.items():
+            if button_tag == tag:
+                button.setProperty("running", running)
+                button.setEnabled(not running)
+                button.style().unpolish(button)
+                button.style().polish(button)
+                break
 
     def _log_result(self, stdout: str, stderr: str, code: int) -> None:
-        if stdout.strip():
-            for line in stdout.rstrip().splitlines()[-40:]:
-                self.log("    " + line)
-        if stderr.strip():
-            for line in stderr.rstrip().splitlines()[-40:]:
-                self.log("    ERR " + line)
         if code == 0:
             self.log("[OK] tarefa concluída")
         else:
