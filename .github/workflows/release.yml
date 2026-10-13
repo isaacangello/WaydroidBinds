@@ -150,6 +150,8 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
+          # aceita host-key novo no clone E no push (keyscan pode falhar no runner)
+          export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new"
           cd /tmp
           if git clone ssh://aur@aur.archlinux.org/waydroid-binds.git aur-waydroid-binds 2>/dev/null; then
             cd aur-waydroid-binds
@@ -165,7 +167,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git add PKGBUILD .SRCINFO
           git commit -m "Release ${{ steps.sha256.outputs.tag }}" || true
-          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git push origin master
+          git push origin master
 
   release:
     runs-on: ubuntu-latest
