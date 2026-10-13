@@ -1,5 +1,25 @@
 # Waydroid Shared Folders - Changelog
 
+## v1.5.0 (2026-10-13)
+
+### Adicionado
+- **Nova aba "Status"** (4ª aba, 100% sem senha, auto-refresh 30s enquanto aberta):
+  - Estado do Waydroid: serviço systemd, container Android real, sessão (GUI), uptime, versão do Waydroid, tipo de imagem, distribuição (ex.: LineageOS 20), IP do Android
+  - Recursos: kernel binder, disco (`df -h`)
+  - Resumo: pastas montadas (X/5) e internet (cache do firewall)
+  - Botão "Abrir Android (GUI)" (habilita só sem sessão ativa) e "Atualizar"
+  - Distribuição lida do `build.prop` do rootfs sem root (mapeamento Android→LineageOS)
+- **Internacionalização (i18n)**: português nativo; qualquer outro idioma cai para inglês
+  - `Qt Linguist` (`tr()` com contextos), `.ts`/`.qm` em pt_BR e en, `TranslationsManager`
+  - `pkgdesc` do AUR em inglês; `.desktop` com `Comment` padrão em inglês
+- `TaskRunner`: resolve comandos pelo `PATH` (`shutil.which`); scripts `.sh` via `pkexec bash`
+
+### Corrigido
+- **GUI**: refresh assíncrono (UI não trava), loading por botão (outros continuam clicáveis), aba firewall sempre atualiza ao abrir, log silencioso para refreshes automáticos
+- **noexec**: launcher e ações com `pkexec` funcionam em partições montadas com `noexec`
+- **CI/AUR**: job publica via `git clone` do repo AUR (SSH antes do clone) — push incremental em vez de histórico novo a cada release
+- Saída de erro do Waydroid não vaza mais para os cartões de status (validação de valores)
+
 ## v1.3.0 (2026-08-01)
 
 ### Adicionado

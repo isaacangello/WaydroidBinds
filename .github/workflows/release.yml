@@ -143,6 +143,13 @@ jobs:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: |
           set -e
+          # SSH primeiro: o clone do repo AUR precisa da chave
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org > ~/.ssh/known_hosts 2>/dev/null
+          chmod 644 ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
           cd /tmp
           if git clone ssh://aur@aur.archlinux.org/waydroid-binds.git aur-waydroid-binds 2>/dev/null; then
             cd aur-waydroid-binds
@@ -150,22 +157,14 @@ jobs:
             mkdir -p aur-waydroid-binds
             cd aur-waydroid-binds
             git init
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
             git remote add origin ssh://aur@aur.archlinux.org/waydroid-binds.git
           fi
           cp "${GITHUB_WORKSPACE}/packaging/arch/PKGBUILD" .
           cp "${GITHUB_WORKSPACE}/packaging/arch/.SRCINFO" .
-          git add PKGBUILD .SRCINFO
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+          git add PKGBUILD .SRCINFO
           git commit -m "Release ${{ steps.sha256.outputs.tag }}" || true
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org > ~/.ssh/known_hosts 2>/dev/null
-          chmod 644 ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          echo "$AUR_SSH_PRIVATE_KEY" | ssh-add -
           GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git push origin master
 
   release:

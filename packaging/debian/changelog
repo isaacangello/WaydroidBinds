@@ -1,3 +1,28 @@
+waydroid-binds (1.5.0-1) unstable; urgency=medium
+
+  * Nova aba Status: container, sessão (GUI), uptime, IP do Android,
+    kernel binder, disco, distribuição (LineageOS) e resumo de binds —
+    tudo sem pedir senha, com auto-refresh de 30s.
+  * Internacionalização completa: português nativo, inglês como fallback
+    para qualquer outro idioma (Qt Linguist, .ts/.qm em pt e en).
+  * Backend robusto: saída em tempo real, cancelamento de tarefas,
+    timeouts e invocação de scripts via 'bash' (funciona em partições
+    montadas com noexec).
+  * GUI responsiva: refresh assíncrono, loading por botão, aba de
+    firewall sempre atualizada ao abrir.
+  * AUR: pkgdesc em inglês; publicação automatizada via GitHub Actions
+    (clone do repo AUR com SSH antes do push).
+
+ -- Isaac Angello <isaac.angello@gmail.com>  Tue, 13 Oct 2026 10:00:00 -0300
+
+waydroid-binds (1.4.1-1) unstable; urgency=medium
+
+  * Remove Flatpak (packaging, CI e código da GUI).
+  * GUI: TaskRunner com streaming/cancel/timeout; MainWindow reativa.
+  * PKGBUILD AUR-ready com source do GitHub Releases.
+
+ -- Isaac Angello <isaac.angello@gmail.com>  Sat, 22 Aug 2026 09:00:00 -0300
+
 waydroid-binds (1.3.0-1) unstable; urgency=medium
 
   * GUI PySide6 (painel completo) para gerenciar binds e firewall.
