@@ -1,6 +1,7 @@
 """Execução assíncrona de comandos (com pkexec) via QProcess."""
 
 import os
+import shutil
 
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
@@ -40,21 +41,35 @@ class TaskRunner(QObject):
         if isinstance(command, str):
             command = command.split()
         command = list(command)
-        if not command or not os.path.exists(command[0]):
+        if not command:
+            self.finished.emit(tag, "", "ERRO: comando vazio", 127)
+            return
+        # Resolve o executável pelo PATH (bash, waydroid, systemctl, ...)
+        resolved = shutil.which(command[0])
+        if resolved is None and os.path.exists(command[0]):
+            resolved = command[0]
+        if resolved is None:
             self.finished.emit(
                 tag,
                 "",
-                f"ERRO: comando não encontrado: {command[0] if command else '?'}",
+                f"ERRO: comando não encontrado: {command[0]}",
                 127,
             )
             return
+        command[0] = resolved
         if self._dry_run:
             line = ("pkexec " + " ".join(command)) if use_pkexec else " ".join(command)
             self.started.emit(tag, "[DRY-RUN] " + line)
             QTimer.singleShot(300, lambda: self.finished.emit(tag, "", "", 0))
             return
         if use_pkexec:
-            command = ["pkexec"] + command
+            # Scripts .sh são invocados via 'bash': funciona mesmo em
+            # partições montadas com noexec (o interpretador é executado
+            # de /usr/bin e o script é lido como arquivo de dados).
+            if command[0].endswith(".sh"):
+                command = ["pkexec", "bash"] + command
+            else:
+                command = ["pkexec"] + command
         proc = QProcess(self)
         proc.setProgram(command[0])
         proc.setArguments(command[1:])

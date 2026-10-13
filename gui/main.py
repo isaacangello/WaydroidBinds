@@ -13,6 +13,7 @@ from backend import TaskRunner
 from main_window import MainWindow
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
+from translations_manager import TranslationsManager
 
 
 def main() -> int:
@@ -23,6 +24,9 @@ def main() -> int:
     app.setApplicationName("Waydroid Binds")
     app.setApplicationDisplayName("Waydroid Binds")
     app.setOrganizationName("WaydroidBinds")
+
+    # Carregar traduções ANTES de criar a janela
+    TranslationsManager(app)
 
     icon_path = (
         Path(__file__).resolve().parent

@@ -38,19 +38,36 @@
 
   <screenshots>
     <screenshot type="default">
-      <image type="source">https://raw.githubusercontent.com/isaacangello/WaydroidBinds/v1.3.0/docs/screenshots/waydroid-binds-binds.png</image>
+      <image type="source">https://raw.githubusercontent.com/isaacangello/WaydroidBinds/v1.5.0/docs/screenshots/waydroid-binds-binds.png</image>
     </screenshot>
     <screenshot>
-      <image type="source">https://raw.githubusercontent.com/isaacangello/WaydroidBinds/v1.3.0/docs/screenshots/waydroid-binds-firewall.png</image>
+      <image type="source">https://raw.githubusercontent.com/isaacangello/WaydroidBinds/v1.5.0/docs/screenshots/waydroid-binds-firewall.png</image>
     </screenshot>
     <screenshot>
-      <image type="source">https://raw.githubusercontent.com/isaacangello/WaydroidBinds/v1.3.0/docs/screenshots/waydroid-binds-media.png</image>
+      <image type="source">https://raw.githubusercontent.com/isaacangello/WaydroidBinds/v1.5.0/docs/screenshots/waydroid-binds-media.png</image>
     </screenshot>
   </screenshots>
 
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="1.5.0" date="2026-10-13">
+      <description>
+        <p>New Status tab (password-free, 30s auto-refresh): container and session
+        state, uptime, Android IP, LineageOS distribution, disk and bind summary.</p>
+        <p>Full internationalization: Portuguese native, English fallback for
+        any other locale. Reactive GUI with per-button loading and async
+        refreshes. Scripts now run via bash (works on noexec mounts).</p>
+        <p xml:lang="pt_BR">Nova aba Status (sem senha, auto-refresh de 30s):
+        estado do container/sessão, uptime, IP do Android, distribuição
+        LineageOS, disco e resumo de binds.</p>
+        <p xml:lang="pt_BR">Internacionalização completa: português nativo,
+        inglês como fallback para qualquer outro idioma. GUI reativa com
+        loading por botão e refreshes assíncronos. Scripts rodam via bash
+        (funciona em montagens noexec).</p>
+      </description>
+    </release>
+    <release version="1.4.1" date="2026-08-22"/>
     <release version="1.3.0" date="2026-08-01"/>
   </releases>
 </component>

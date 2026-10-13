@@ -2,7 +2,7 @@
 Type=Application
 Name=Waydroid Binds
 Name[pt_BR]=Waydroid Binds
-Comment=Gerenciar pastas compartilhadas e firewall do Waydroid
+Comment=Manage Waydroid shared folders and firewall
 Comment[pt_BR]=Gerenciar pastas compartilhadas e firewall do Waydroid
 Exec=waydroid-binds-gui
 Icon=io.github.isaacangello.waydroidbinds
