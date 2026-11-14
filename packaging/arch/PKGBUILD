@@ -28,7 +28,7 @@ package() {
   install -dm 0755 "$pkgdir/usr/share/waydroid-binds"
   install -m 0755 waydroid-binds-gui "$pkgdir/usr/bin/waydroid-binds-gui"
   install -m 0755 setup-waydroid-binds.sh setup-waydroid-firewall.sh \
-    revert-waydroid-binds.sh copy-existing-media.sh \
+    revert-waydroid-binds.sh copy-existing-media.sh apply-binds.sh \
     "$pkgdir/usr/share/waydroid-binds/"
   cp -a gui "$pkgdir/usr/share/waydroid-binds/"
   install -dm 0755 "$pkgdir/usr/share/applications" "$pkgdir/usr/share/metainfo" "$pkgdir/usr/share/licenses/$pkgname"

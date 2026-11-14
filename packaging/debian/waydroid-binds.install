@@ -2,6 +2,7 @@ setup-waydroid-binds.sh usr/share/waydroid-binds/
 setup-waydroid-firewall.sh usr/share/waydroid-binds/
 revert-waydroid-binds.sh usr/share/waydroid-binds/
 copy-existing-media.sh usr/share/waydroid-binds/
+apply-binds.sh usr/share/waydroid-binds/
 waydroid-binds-gui usr/bin/
 gui usr/share/waydroid-binds/
 gui/resources/io.github.isaacangello.waydroidbinds.desktop usr/share/applications/

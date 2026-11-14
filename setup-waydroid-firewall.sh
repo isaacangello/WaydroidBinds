@@ -21,14 +21,16 @@ SYSCONF_FILE="/etc/sysctl.d/99-waydroid.conf"
 STARTUP_SCRIPT="/usr/bin/waydroid-startup-scripts"
 FBEGIN="# Waydroid Firewall BEGIN"
 FEND="# Waydroid Firewall END"
-SBEGIN="# Waydroid Shared Folders BEGIN"
-SEND="# Waydroid Shared Folders END"
+DROPIN_DIR="/etc/systemd/system/waydroid-container.service.d"
+DROPIN="$DROPIN_DIR/waydroid-firewall.conf"
+SHARE_DIR="/usr/share/waydroid-binds"
 
 MODE="apply"
 case "${1:-}" in
     check|-c)            MODE="check" ;;
     status|-s)           MODE="status" ;;
     revert|--revert|-r)  MODE="revert" ;;
+    boot|-b)             MODE="boot" ;;
     *)                   MODE="apply" ;;
 esac
 
@@ -140,59 +142,52 @@ setup_iptables() {
     fi
 }
 
-# Insere um bloco marcado ANTES do primeiro 'exit' do hook.
-# (O hook original termina com 'exit'; conteúdo adicionado depois dele é código morto.)
-insert_before_exit() {
-    local hook="$1" begin="$2" end="$3" block="$4"
-    local tmp
-    tmp=$(mktemp)
-    sed -i "/${begin}/,/${end}/d" "$hook"
-    awk -v b="$block" '
-        /^exit[[:space:]]*$/ && !done {
-            print b
-            done=1
-        }
-        { print }
-    ' "$hook" > "$tmp"
-    mv "$tmp" "$hook"
-    if ! grep -qF "$begin" "$hook"; then
-        printf '\n%s\n' "$block" >> "$hook"
-    fi
-}
+# Persistência via systemd drop-in (sobrevive a updates do pacote waydroid,
+# ao contrário da injeção de blocos em waydroid-startup-scripts).
+install_boot_persistence() {
+    # Copia este script para o local de sistema (o drop-in aponta pra lá)
+    install -d -m 755 "$SHARE_DIR"
+    install -m 755 "$(readlink -f "$0")" "$SHARE_DIR/setup-waydroid-firewall.sh"
 
-# Move um bloco que esteja depois do 'exit' (inativo) para antes do 'exit'.
-relocate_block_before_exit() {
-    local hook="$1" begin="$2" end="$3"
-    local after_exit block
-    after_exit=$(sed -n '/^exit[[:space:]]*$/,$p' "$hook" 2>/dev/null || true)
-    if echo "$after_exit" | grep -qF "$begin"; then
-        block=$(sed -n "/${begin}/,/${end}/p" "$hook")
-        insert_before_exit "$hook" "$begin" "$end" "$block"
-        return 0
-    fi
-    return 1
-}
-
-install_hook() {
-    [ -f "$STARTUP_SCRIPT" ] || return 0
-    local block
-    block=$(cat <<EOF
-
-$FBEGIN
-sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
-iptables -P FORWARD ACCEPT 2>/dev/null || true
-iptables -C FORWARD -i $WAYDROID_IF -j ACCEPT 2>/dev/null || iptables -I FORWARD -i $WAYDROID_IF -j ACCEPT 2>/dev/null || true
-iptables -C FORWARD -o $WAYDROID_IF -j ACCEPT 2>/dev/null || iptables -I FORWARD -o $WAYDROID_IF -j ACCEPT 2>/dev/null || true
-iptables -t nat -C POSTROUTING -s $WAYDROID_NET -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -s $WAYDROID_NET -j MASQUERADE 2>/dev/null || true
-waydroid shell -- ip route replace default via 192.168.240.1 dev eth0 2>/dev/null || true
-$FEND
+    mkdir -p "$DROPIN_DIR"
+    cat > "$DROPIN" <<'EOF'
+# Gerado por setup-waydroid-firewall.sh — reaplica as regras a cada início
+# do container. O prefixo '-' evita falhar o serviço se algo der errado.
+# Não edite: este arquivo é reescrito pelo setup-waydroid-firewall.sh.
+[Service]
+ExecStartPost=-/usr/share/waydroid-binds/setup-waydroid-firewall.sh boot
 EOF
-)
-    insert_before_exit "$STARTUP_SCRIPT" "$FBEGIN" "$FEND" "$block"
-    if relocate_block_before_exit "$STARTUP_SCRIPT" "$SBEGIN" "$SEND"; then
-        ok "Bloco de bind mounts (Shared Folders) movido para antes do 'exit' — estava inativo"
+    systemctl daemon-reload
+    ok "Persistência instalada: $DROPIN (ExecStartPost → boot)"
+}
+
+remove_boot_persistence() {
+    if [ -f "$DROPIN" ]; then
+        rm -f "$DROPIN"
+        [ -d "$DROPIN_DIR" ] && rmdir "$DROPIN_DIR" 2>/dev/null || true
+        systemctl daemon-reload
+        ok "Drop-in systemd removido ($DROPIN)"
     fi
-    ok "Persistência instalada em $STARTUP_SCRIPT (blocos executam antes do 'exit')"
+}
+
+# Modo 'boot': reaplica apenas as regras do lado host — chamado pelo systemd
+# a cada início do container (ExecStartPost). Sem interação, sem self_test.
+boot_apply() {
+    msg "== waydroid-binds: reaplicando firewall no boot =="
+    ensure_ip_forward
+    case "$FIREWALL" in
+        firewalld) setup_firewalld ;;
+        ufw)       setup_ufw ;;
+        *)         setup_iptables ;;
+    esac
+    fix_forward_policy
+    apply_waydroid_iptables
+    # Restaura a rota default dentro do container (se já estiver acessível)
+    if systemctl is-active waydroid-container >/dev/null 2>&1; then
+        timeout 10 waydroid shell -- ip route replace default via 192.168.240.1 dev eth0 >/dev/null 2>&1 || true
+    fi
+    msg "== waydroid-binds: firewall reaplicado =="
+    exit 0
 }
 
 self_test() {
@@ -311,8 +306,12 @@ case "$MODE" in
     status)
         status
         ;;
+    boot)
+        boot_apply
+        ;;
     revert)
         revert
+        remove_boot_persistence
         ;;
     apply)
         msg "Firewall detectado: $FIREWALL"
@@ -327,10 +326,17 @@ case "$MODE" in
         esac
         fix_forward_policy
         apply_waydroid_iptables
-        install_hook
+
+        # Persistência: drop-in systemd em vez de blocos no hook do Waydroid
+        install_boot_persistence
+        if [ -f "$STARTUP_SCRIPT" ] && grep -q "$FBEGIN" "$STARTUP_SCRIPT"; then
+            sed -i "/${FBEGIN}/,/${FEND}/d" "$STARTUP_SCRIPT"
+            msg "Migração: bloco legado removido de $STARTUP_SCRIPT (agora gerenciado pelo systemd)"
+        fi
+
         self_test
         msg ""
-        msg "Pronto! Reinicie o container para aplicar: systemctl restart waydroid-container"
-        msg "Obs.: se usar Docker, ele pode redefinir FORWARD para DROP ao reiniciar; o hook reaplica na inicialização do container."
+        msg "Pronto! As regras são reaplicadas a cada início do container."
+        msg "Obs.: se usar Docker, ele pode redefinir FORWARD para DROP ao reiniciar; o boot reaplica na inicialização do container."
         ;;
 esac

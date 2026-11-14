@@ -29,7 +29,7 @@ install -dm 0755 %{buildroot}%{_bindir}
 install -dm 0755 %{buildroot}%{_datadir}/waydroid-binds
 install -m 0755 waydroid-binds-gui %{buildroot}%{_bindir}/waydroid-binds-gui
 for s in setup-waydroid-binds.sh setup-waydroid-firewall.sh \
-         revert-waydroid-binds.sh copy-existing-media.sh; do
+         revert-waydroid-binds.sh copy-existing-media.sh apply-binds.sh; do
     install -m 0755 "$s" %{buildroot}%{_datadir}/waydroid-binds/
 done
 cp -a gui %{buildroot}%{_datadir}/waydroid-binds/

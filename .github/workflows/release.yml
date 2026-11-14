@@ -40,7 +40,7 @@ jobs:
           # Create tarball with correct directory structure for %setup
           mkdir -p /tmp/waydroid-binds-${TAG}
           cp -r setup-waydroid-binds.sh setup-waydroid-firewall.sh \
-            revert-waydroid-binds.sh copy-existing-media.sh \
+            revert-waydroid-binds.sh copy-existing-media.sh apply-binds.sh \
             waydroid-binds-gui gui LICENSE /tmp/waydroid-binds-${TAG}/
           tar -czf /github/home/rpmbuild/SOURCES/waydroid-binds-${TAG}.tar.gz \
             -C /tmp waydroid-binds-${TAG}

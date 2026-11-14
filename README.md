@@ -59,7 +59,12 @@ pkexec ./setup-waydroid-firewall.sh check
 pkexec ./setup-waydroid-firewall.sh revert
 ```
 
-Os binds e as regras de firewall são automaticamente restaurados toda vez que o container Waydroid inicia, via hook em `/usr/bin/waydroid-startup-scripts`.
+Os binds e as regras de firewall são automaticamente restaurados **a cada início do container** — sem tocar em nenhum arquivo do Waydroid:
+
+- `/etc/waydroid-binds.conf`: seleção de binds por usuário (`usuario:Downloads,Imagens,...`)
+- Drop-ins systemd em `/etc/systemd/system/waydroid-container.service.d/` (`ExecStartPost` → `apply-binds.sh` e `setup-waydroid-firewall.sh boot`)
+- A home de cada usuário é resolvida por `getent` a cada boot (migração de home não quebra nada; multi-usuário suportado)
+- Mecanismo imune a atualizações do pacote Waydroid (diferente do hook legado em `/usr/bin/waydroid-startup-scripts`, que é removido automaticamente na primeira aplicação)
 
 ## GUI
 
@@ -93,7 +98,7 @@ O `setup-waydroid-firewall.sh` detecta automaticamente o firewall ativo (**firew
 - firewalld: interface `waydroid0` movida para a zona `trusted` (permanente)
 - UFW: libera DNS (53), DHCP (67) e forwarding em `waydroid0`
 - iptables/nftables: `iptables -P FORWARD ACCEPT` + ACCEPT `-i/-o waydroid0` + MASQUERADE
-- Restaura a rota default dentro do container a cada boot (via hook)
+- Restaura a rota default dentro do container a cada boot (via drop-in systemd)
 
 > **Sintoma comum:** WhatsApp não envia mensagens mas às vezes navega. Causa típica: Docker deixa `FORWARD DROP` e só aceita conexões já estabelecidas — pacotes novos do container são descartados. O script resolve adicionando ACCEPT para `waydroid0`.
 

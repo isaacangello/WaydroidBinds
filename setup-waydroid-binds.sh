@@ -6,6 +6,14 @@
 #   Com argumentos: aplica apenas os binds listados pelo nome
 #   (ex.: Downloads Imagens). Nomes válidos: Downloads, Documentos,
 #   Imagens, videos, WhatsApp.
+#
+# Persistência: em vez de injetar blocos no hook do Waydroid (que o
+# update do pacote pode sobrescrever), este script:
+#   1. monta os binds na hora (visíveis no container em execução);
+#   2. grava a seleção em /etc/waydroid-binds.conf (um usuário por linha);
+#   3. instala um drop-in systemd (ExecStartPost) que reaplica os binds
+#      a CADA início do container via apply-binds.sh;
+#   4. migra: remove blocos legados de waydroid-startup-scripts, se houver.
 
 set -euo pipefail
 
@@ -22,6 +30,11 @@ USER_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6)
 
 WAYDROID_MEDIA="$USER_HOME/.local/share/waydroid/data/media/0"
 STARTUP_SCRIPT="/usr/bin/waydroid-startup-scripts"
+CONF="/etc/waydroid-binds.conf"
+DROPIN_DIR="/etc/systemd/system/waydroid-container.service.d"
+DROPIN="$DROPIN_DIR/waydroid-binds.conf"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+SHARE_DIR="/usr/share/waydroid-binds"
 
 echo "Usuário: $REAL_USER"
 echo ""
@@ -68,7 +81,7 @@ for name in "${SELECTED[@]}"; do
     mkdir -p "$WAYDROID_MEDIA/$target"
 done
 
-# Apply binds
+# Apply binds (montagem imediata — visível no container em execução)
 for name in "${SELECTED[@]}"; do
     source="${BINDS[$name]%%:*}"
     target="$WAYDROID_MEDIA/${BINDS[$name]#*:}"
@@ -82,44 +95,40 @@ echo ""
 echo "=== Binds ativos ==="
 mount | grep "$WAYDROID_MEDIA" | sed "s|.*on ||" | sed "s| type.*||" || true
 
-# Persistência via waydroid-startup-scripts
-# Insere o bloco ANTES do 'exit' do hook (o hook original termina com 'exit';
-# conteúdo adicionado depois dele é código morto e não roda no boot).
-# O bloco contém apenas os binds selecionados.
-if [ -f "$STARTUP_SCRIPT" ]; then
-    CHMOD_SOURCES=()
-    MOUNT_LINES=()
-    for name in "${SELECTED[@]}"; do
-        source="${BINDS[$name]%%:*}"
-        target="$WAYDROID_MEDIA/${BINDS[$name]#*:}"
-        CHMOD_SOURCES+=("$source")
-        MOUNT_LINES+=("mount --bind $source $target")
-    done
+# ---------- Persistência via config + systemd drop-in ----------
 
-    BLOCK=$(cat << EOF
+# 1. Copia o helper de boot para o local de sistema (o drop-in aponta pra lá)
+install -d -m 755 "$SHARE_DIR"
+if [ -f "$SCRIPT_DIR/apply-binds.sh" ]; then
+    install -m 755 "$SCRIPT_DIR/apply-binds.sh" "$SHARE_DIR/apply-binds.sh"
+fi
 
-# Waydroid Shared Folders BEGIN
-chmod 777 ${CHMOD_SOURCES[*]} 2>/dev/null || true
-$(printf '%s\n' "${MOUNT_LINES[@]}")
-# Waydroid Shared Folders END
+# 2. Grava a seleção do usuário na config (preservando outros usuários)
+SELECTED_CSV="$(IFS=,; echo "${SELECTED[*]}")"
+tmpconf=$(mktemp)
+awk -F: -v u="$REAL_USER" '$1 != u' "$CONF" 2>/dev/null > "$tmpconf" || true
+echo "${REAL_USER}:${SELECTED_CSV}" >> "$tmpconf"
+install -m 644 "$tmpconf" "$CONF"
+rm -f "$tmpconf"
+echo ""
+echo "Persistência registrada em $CONF ($REAL_USER: ${SELECTED_CSV})"
+
+# 3. Instala o drop-in systemd (reaplica a cada início do container)
+mkdir -p "$DROPIN_DIR"
+cat > "$DROPIN" <<'EOF'
+# Gerado por waydroid-binds — reaplica os binds a cada início do container.
+# Não edite: este arquivo é reescrito por setup-waydroid-binds.sh.
+[Service]
+ExecStartPost=/usr/share/waydroid-binds/apply-binds.sh
 EOF
-)
+systemctl daemon-reload
+echo "Drop-in systemd instalado: $DROPIN"
+
+# 4. Migração: remove blocos legados do hook do Waydroid (se existirem)
+if [ -f "$STARTUP_SCRIPT" ] && grep -q "# Waydroid Shared Folders BEGIN" "$STARTUP_SCRIPT"; then
     sed -i '/# Waydroid Shared Folders BEGIN/,/# Waydroid Shared Folders END/d' "$STARTUP_SCRIPT"
-    if grep -q '^exit' "$STARTUP_SCRIPT"; then
-        TMP=$(mktemp)
-        awk -v b="$BLOCK" '
-            /^exit[[:space:]]*$/ && !done {
-                print b
-                done=1
-            }
-            { print }
-        ' "$STARTUP_SCRIPT" > "$TMP"
-        mv "$TMP" "$STARTUP_SCRIPT"
-    else
-        printf '\n%s\n' "$BLOCK" >> "$STARTUP_SCRIPT"
-    fi
     echo ""
-    echo "Persistência adicionada ao $STARTUP_SCRIPT (binds: ${SELECTED[*]})"
+    echo "Migração: bloco legado removido de $STARTUP_SCRIPT (agora gerenciado pelo systemd)"
 fi
 
 echo ""
@@ -129,3 +138,5 @@ for name in "${SELECTED[@]}"; do
     target="${BINDS[$name]#*:}"
     printf '  %-26s → /sdcard/%s\n' "$source" "$target"
 done
+echo ""
+echo "Os binds serão reaplicados automaticamente a cada início do container."
