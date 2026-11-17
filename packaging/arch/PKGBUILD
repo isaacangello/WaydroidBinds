@@ -1,6 +1,6 @@
 # Maintainer: Isaac Angello <isaac.angello@gmail.com>
 pkgname=waydroid-binds
-pkgver=1.5.0
+pkgver=1.6.0
 pkgrel=1
 pkgdesc="GUI and scripts for Waydroid shared folders and firewall"
 arch=('any')

@@ -1,5 +1,25 @@
 # Waydroid Shared Folders - Changelog
 
+## v1.6.0 (2026-11-16)
+
+### Adicionado
+- **Persistência consolidada via systemd drop-in** (substitui a injeção de blocos em `/usr/bin/waydroid-startup-scripts`):
+  - `/etc/waydroid-binds.conf`: seleção de binds **por usuário** (`usuario:Downloads,Imagens,...` ou `all`)
+  - Home resolvida por `getent` **a cada boot** — migração de home não quebra nada
+  - Multi-usuário real: cada usuário tem sua linha na config; "Reverter" preserva os outros
+  - Drop-ins em `/etc/systemd/system/waydroid-container.service.d/` (`ExecStartPost`) — imunes a updates do pacote Waydroid
+  - Dispara em **qualquer** início do container (boot, restart ou manual), não só no boot da máquina
+- `apply-binds.sh`: helper de boot (idempotente, log no journald, sempre `exit 0`, `WAYDROID_BINDS_DRY_RUN=1` para testes)
+- Firewall: novo modo `boot` (regras host + rota default do container com timeout) aplicado via drop-in próprio
+
+### Alterado
+- `setup`/`revert` de binds não escrevem mais no hook do Waydroid; aplicam/revertem a config + drop-in
+- Firewall `apply` instala o próprio drop-in; `revert` remove; nenhum dos dois toca mais em `waydroid-startup-scripts`
+- Migração automática: blocos legados `BEGIN/END` são removidos do hook na primeira aplicação/reversão
+
+### Corrigido
+- Risco de perda silenciosa de persistência em updates do pacote Waydroid (o hook era arquivo vendor)
+
 ## v1.5.0 (2026-10-13)
 
 ### Adicionado

@@ -1,5 +1,5 @@
 Name:           waydroid-binds
-Version:        1.5.0
+Version:        1.6.0
 Release:        1%{?dist}
 Summary:        Waydroid shared folders and firewall manager
 
@@ -49,6 +49,11 @@ install -m 0644 LICENSE %{buildroot}%{_licensedir}/%{name}/ 2>/dev/null || true
 %license LICENSE
 
 %changelog
+* Mon Nov 16 2026 Isaac Angello <isaac.angello@gmail.com> - 1.6.0-1
+- Persistence via systemd drop-in + /etc/waydroid-binds.conf (per-user,
+  $HOME resolved every boot, survives Waydroid package updates).
+- New apply-binds.sh boot helper (idempotent, journald logging).
+- Firewall: new 'boot' mode; no more writes to waydroid-startup-scripts.
 * Tue Oct 13 2026 Isaac Angello <isaac.angello@gmail.com> - 1.5.0-1
 - New Status tab: container/session, uptime, Android IP, LineageOS distro.
 - Full i18n (pt_BR native, English fallback via Qt Linguist).

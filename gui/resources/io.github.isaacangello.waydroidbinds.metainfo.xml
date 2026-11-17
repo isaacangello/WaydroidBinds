@@ -51,6 +51,22 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="1.6.0" date="2026-11-16">
+      <description>
+        <p>Consolidated persistence via systemd drop-in and /etc/waydroid-binds.conf:
+        per-user bind selection, home resolved via getent on every boot, survives
+        Waydroid package updates, and re-applies on every container start.</p>
+        <p>New apply-binds.sh boot helper (idempotent, journald logging) and a
+        firewall 'boot' mode. Legacy hook blocks are migrated away automatically.</p>
+        <p xml:lang="pt_BR">Persistência consolidada via drop-in systemd e
+        /etc/waydroid-binds.conf: seleção de binds por usuário, home resolvida
+        por getent a cada boot, sobrevive a updates do Waydroid e reaplica a
+        cada início do container.</p>
+        <p xml:lang="pt_BR">Novo helper apply-binds.sh (idempotente, log no
+        journald) e modo 'boot' para o firewall. Blocos legados do hook são
+        migrados automaticamente.</p>
+      </description>
+    </release>
     <release version="1.5.0" date="2026-10-13">
       <description>
         <p>New Status tab (password-free, 30s auto-refresh): container and session

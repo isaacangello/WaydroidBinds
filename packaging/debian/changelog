@@ -1,3 +1,16 @@
+waydroid-binds (1.6.0-1) unstable; urgency=medium
+
+  * Persistência nova: drop-in systemd + /etc/waydroid-binds.conf em vez
+    de blocos injetados em waydroid-startup-scripts (sobrevive a updates
+    do pacote Waydroid, resolve home por getent a cada boot, multi-usuário).
+  * Novo helper apply-binds.sh (idempotente, log no journald, ExecStartPost).
+  * Firewall: novo modo 'boot' aplicado a cada início do container;
+    apply/revert não escrevem mais no hook do Waydroid.
+  * Migração automática: blocos legados são removidos do hook na primeira
+    aplicação/reversão.
+
+ -- Isaac Angello <isaac.angello@gmail.com>  Mon, 16 Nov 2026 10:00:00 -0300
+
 waydroid-binds (1.5.0-1) unstable; urgency=medium
 
   * Nova aba Status: container, sessão (GUI), uptime, IP do Android,
